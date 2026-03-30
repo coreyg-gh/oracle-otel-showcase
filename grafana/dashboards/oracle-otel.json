@@ -104,7 +104,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.95, sum(rate(oracle_otel_oracle_query_duration_ms_bucket[2m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(oracle_otel_oracle_query_duration_milliseconds_bucket[2m])) by (le))",
           "legendFormat": "p95",
           "refId": "A"
         }
@@ -164,7 +164,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.50, sum(rate(oracle_otel_oracle_vector_similarity_score_1_bucket[2m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(oracle_otel_oracle_vector_similarity_score_bucket[2m])) by (le))",
           "legendFormat": "cosine similarity",
           "refId": "A"
         }
@@ -190,19 +190,19 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.50, sum(rate(oracle_otel_oracle_query_duration_ms_bucket[1m])) by (le, operation))",
+          "expr": "histogram_quantile(0.50, sum(rate(oracle_otel_oracle_query_duration_milliseconds_bucket[1m])) by (le, operation))",
           "legendFormat": "p50 {{operation}}",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.95, sum(rate(oracle_otel_oracle_query_duration_ms_bucket[1m])) by (le, operation))",
+          "expr": "histogram_quantile(0.95, sum(rate(oracle_otel_oracle_query_duration_milliseconds_bucket[1m])) by (le, operation))",
           "legendFormat": "p95 {{operation}}",
           "refId": "B"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.99, sum(rate(oracle_otel_oracle_query_duration_ms_bucket[1m])) by (le, operation))",
+          "expr": "histogram_quantile(0.99, sum(rate(oracle_otel_oracle_query_duration_milliseconds_bucket[1m])) by (le, operation))",
           "legendFormat": "p99 {{operation}}",
           "refId": "C"
         }
@@ -293,13 +293,13 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.50, sum(rate(oracle_otel_oracle_query_duration_ms_bucket{operation=\"vector_search\"}[1m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(oracle_otel_oracle_query_duration_milliseconds_bucket{operation=\"vector_search\"}[1m])) by (le))",
           "legendFormat": "p50",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.95, sum(rate(oracle_otel_oracle_query_duration_ms_bucket{operation=\"vector_search\"}[1m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(oracle_otel_oracle_query_duration_milliseconds_bucket{operation=\"vector_search\"}[1m])) by (le))",
           "legendFormat": "p95",
           "refId": "B"
         }
@@ -317,13 +317,13 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.50, sum(rate(oracle_otel_oracle_vector_similarity_score_1_bucket[1m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(oracle_otel_oracle_vector_similarity_score_bucket[1m])) by (le))",
           "legendFormat": "p50 similarity",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.90, sum(rate(oracle_otel_oracle_vector_similarity_score_1_bucket[1m])) by (le))",
+          "expr": "histogram_quantile(0.90, sum(rate(oracle_otel_oracle_vector_similarity_score_bucket[1m])) by (le))",
           "legendFormat": "p90 similarity",
           "refId": "B"
         }
