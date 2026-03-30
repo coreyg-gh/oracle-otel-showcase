@@ -1,5 +1,5 @@
 # Oracle driver (thin mode — no Oracle Instant Client needed)
-python-oracledb>=2.4.0,<3.0
+oracledb>=2.0.0,<3.0
 
 # OpenTelemetry core
 opentelemetry-api>=1.27.0,<2.0

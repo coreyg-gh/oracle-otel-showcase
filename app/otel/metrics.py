@@ -4,22 +4,27 @@ from opentelemetry import metrics
 
 _meter = metrics.get_meter("oracle.otel.showcase", version="1.0.0")
 
-# Connection pool gauges — updated via observable callbacks registered at startup
-pool_size_gauge = _meter.create_observable_gauge(
-    name="oracle.pool.size",
-    description="Total connections in the Oracle connection pool",
-    unit="connections",
-)
-pool_busy_gauge = _meter.create_observable_gauge(
-    name="oracle.pool.busy",
-    description="Oracle pool connections currently in use",
-    unit="connections",
-)
-pool_wait_gauge = _meter.create_observable_gauge(
-    name="oracle.pool.wait_count",
-    description="Sessions waiting to acquire a connection from the pool",
-    unit="sessions",
-)
+
+def create_pool_gauges(size_cb, busy_cb, wait_cb):
+    """Create observable pool gauges with callbacks bound to the live pool."""
+    _meter.create_observable_gauge(
+        name="oracle.pool.size",
+        callbacks=[size_cb],
+        description="Total connections in the Oracle connection pool",
+        unit="connections",
+    )
+    _meter.create_observable_gauge(
+        name="oracle.pool.busy",
+        callbacks=[busy_cb],
+        description="Oracle pool connections currently in use",
+        unit="connections",
+    )
+    _meter.create_observable_gauge(
+        name="oracle.pool.wait_count",
+        callbacks=[wait_cb],
+        description="Sessions waiting to acquire a connection from the pool",
+        unit="sessions",
+    )
 
 # Query latency histogram — labeled by `operation`
 query_duration_histogram = _meter.create_histogram(

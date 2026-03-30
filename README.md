@@ -53,6 +53,8 @@ The stack runs entirely in Docker Compose and includes a live Grafana dashboard 
 - **Docker Desktop 4.x+** with at least **8 GB RAM** allocated
 - **Oracle Container Registry access** (free, required for Oracle Free image)
 
+> **Apple Silicon (M1/M2/M3/M4):** Oracle Free 26ai runs natively as `linux/arm64`. The Python app runs as `linux/amd64` under Rosetta because `python-oracledb` has no Linux aarch64 wheel. Docker Desktop handles both automatically — no manual configuration needed.
+
 ### Step 1 — Oracle Container Registry login (REQUIRED)
 
 The Oracle Free database image is hosted on Oracle's private registry. You must authenticate before `docker compose up` will work.

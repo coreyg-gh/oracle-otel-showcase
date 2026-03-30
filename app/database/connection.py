@@ -53,9 +53,7 @@ def register_pool_callbacks(pool: oracledb.ConnectionPool) -> None:
         except Exception:
             pass
 
-    otel_metrics.pool_size_gauge.add_callback(_observe_pool_size)
-    otel_metrics.pool_busy_gauge.add_callback(_observe_pool_busy)
-    otel_metrics.pool_wait_gauge.add_callback(_observe_pool_wait)
+    otel_metrics.create_pool_gauges(_observe_pool_size, _observe_pool_busy, _observe_pool_wait)
     logger.info("Pool observable gauge callbacks registered")
 
 

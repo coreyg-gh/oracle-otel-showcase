@@ -6,7 +6,7 @@
     { "type": "datasource", "id": "tempo", "name": "Tempo", "version": "1.0.0" }
   ],
   "annotations": { "list": [] },
-  "description": "Oracle 23ai + OpenTelemetry — query latency, pool stats, vector search, and distributed traces",
+  "description": "Oracle 26ai + OpenTelemetry — query latency, pool stats, vector search, and distributed traces",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -360,7 +360,7 @@
   "time": { "from": "now-15m", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Oracle 23ai + OpenTelemetry",
+  "title": "Oracle 26ai + OpenTelemetry",
   "uid": "oracle-otel-showcase",
   "version": 1
 }

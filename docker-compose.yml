@@ -1,6 +1,6 @@
 services:
 
-  # ─── Oracle Database Free 23ai ───────────────────────────────────────────────
+  # ─── Oracle Database Free 26ai ───────────────────────────────────────────────
   oracle-db:
     image: container-registry.oracle.com/database/free:latest
     environment:
@@ -78,7 +78,10 @@ services:
     restart: unless-stopped
 
   # ─── Python workload application ──────────────────────────────────────────────
+  # python-oracledb has no linux/aarch64 wheel — app runs as amd64 under Rosetta.
+  # Oracle DB runs natively as linux/arm64 (performance-critical path).
   app:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: Dockerfile
@@ -104,6 +107,7 @@ services:
 
   # ─── Report generator (on-demand, run via --profile report) ──────────────────
   report-generator:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: Dockerfile

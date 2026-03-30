@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM --platform=linux/amd64 python:3.12-slim
 
 # python-oracledb thin mode does NOT require Oracle Instant Client.
 # gcc is only needed if any wheel requires compilation at install time.
