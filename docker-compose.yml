@@ -1,0 +1,130 @@
+services:
+
+  # ─── Oracle Database Free 23ai ───────────────────────────────────────────────
+  oracle-db:
+    image: container-registry.oracle.com/database/free:latest
+    environment:
+      ORACLE_PWD: "${ORACLE_SYSTEM_PASSWORD:-OraclePass1}"
+      ORACLE_CHARACTERSET: AL32UTF8
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+    healthcheck:
+      # /opt/oracle/checkDBStatus.sh exits 0 only when the DB is open
+      test: ["CMD", "/opt/oracle/checkDBStatus.sh"]
+      interval: 30s
+      timeout: 15s
+      retries: 25
+      start_period: 120s   # Oracle Free takes ~90–120s on first boot
+
+  # ─── OpenTelemetry Collector ──────────────────────────────────────────────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.103.0
+    volumes:
+      - ./otel-collector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC  (app → collector)
+      - "4318:4318"   # OTLP HTTP  (optional)
+      - "8889:8889"   # Prometheus scrape endpoint
+    depends_on:
+      - tempo
+    restart: unless-stopped
+
+  # ─── Prometheus ───────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=7d"
+      - "--web.enable-remote-write-receiver"
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+  # ─── Grafana Tempo ────────────────────────────────────────────────────────────
+  tempo:
+    image: grafana/tempo:2.5.0
+    volumes:
+      - ./tempo/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    ports:
+      - "3200:3200"   # Tempo HTTP API (Grafana datasource + report generator)
+    restart: unless-stopped
+
+  # ─── Grafana ──────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:11.1.0
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_FEATURE_TOGGLES_ENABLE: "traceToMetrics"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - tempo
+    restart: unless-stopped
+
+  # ─── Python workload application ──────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m app.main
+    environment:
+      ORACLE_HOST: oracle-db
+      ORACLE_PORT: "1521"
+      ORACLE_SERVICE: FREE
+      ORACLE_USER: "${ORACLE_USER:-demo}"
+      ORACLE_PASSWORD: "${ORACLE_PASSWORD:-DemoPass1}"
+      ORACLE_SYSTEM_PASSWORD: "${ORACLE_SYSTEM_PASSWORD:-OraclePass1}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+      OTEL_SERVICE_NAME: oracle-otel-showcase
+      WORKLOAD_INTERVAL_SECONDS: "2.0"
+      VECTOR_DIMENSIONS: "1536"
+      VECTOR_COUNT_SEED: "100"
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    restart: on-failure
+
+  # ─── Report generator (on-demand, run via --profile report) ──────────────────
+  report-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m report.generator
+    environment:
+      ORACLE_HOST: oracle-db
+      ORACLE_PASSWORD: "${ORACLE_PASSWORD:-DemoPass1}"
+      ORACLE_SYSTEM_PASSWORD: "${ORACLE_SYSTEM_PASSWORD:-OraclePass1}"
+      PROMETHEUS_URL: "http://prometheus:9090"
+      TEMPO_URL: "http://tempo:3200"
+      REPORT_OUTPUT_DIR: "/reports"
+      REPORT_LOOKBACK_MINUTES: "${REPORT_LOOKBACK_MINUTES:-30}"
+    volumes:
+      - ./reports:/reports
+    profiles:
+      - report
+    depends_on:
+      - prometheus
+      - tempo
+
+volumes:
+  oracle-data:
+  prometheus-data:
+  tempo-data:

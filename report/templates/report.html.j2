@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oracle OTel Showcase — Report</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f172a; color: #e2e8f0; line-height: 1.6;
+    }
+    header {
+      background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+      padding: 2rem 3rem; border-bottom: 1px solid #334155;
+    }
+    header h1 { font-size: 1.75rem; font-weight: 700; color: #fff; }
+    header p { color: #bfdbfe; margin-top: 0.25rem; font-size: 0.9rem; }
+    .container { max-width: 1280px; margin: 0 auto; padding: 2rem 3rem; }
+    .badge {
+      display: inline-block; padding: 0.2rem 0.7rem; border-radius: 9999px;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em;
+    }
+    .badge-blue { background: #1e3a8a; color: #93c5fd; }
+    .badge-green { background: #14532d; color: #86efac; }
+    .badge-red { background: #7f1d1d; color: #fca5a5; }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem; margin: 1.5rem 0;
+    }
+    .stat-card {
+      background: #1e293b; border: 1px solid #334155; border-radius: 0.75rem;
+      padding: 1.25rem; transition: border-color 0.2s;
+    }
+    .stat-card:hover { border-color: #60a5fa; }
+    .stat-card .label { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-card .value { font-size: 2rem; font-weight: 700; color: #f8fafc; margin-top: 0.25rem; }
+    .stat-card .unit { font-size: 0.8rem; color: #64748b; }
+    section { margin-top: 2.5rem; }
+    section h2 {
+      font-size: 1.1rem; font-weight: 600; color: #93c5fd;
+      border-bottom: 1px solid #334155; padding-bottom: 0.5rem; margin-bottom: 1rem;
+    }
+    .chart-container {
+      background: #1e293b; border: 1px solid #334155; border-radius: 0.75rem;
+      padding: 1.5rem; position: relative; height: 300px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th {
+      text-align: left; padding: 0.6rem 1rem; background: #1e293b;
+      color: #94a3b8; font-weight: 600; font-size: 0.75rem;
+      text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #334155;
+    }
+    td { padding: 0.6rem 1rem; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
+    tr:hover td { background: #1e293b; }
+    .ops-bar-wrap { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .ops-bar-item { flex: 1; min-width: 120px; }
+    .ops-bar-item .op-name { font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.25rem; }
+    .ops-bar-item .op-bar {
+      height: 8px; border-radius: 4px; background: #3b82f6;
+      transition: width 0.3s;
+    }
+    .ops-bar-item .op-count { font-size: 0.75rem; color: #64748b; margin-top: 0.2rem; }
+    footer {
+      text-align: center; padding: 2rem; color: #475569; font-size: 0.8rem;
+      border-top: 1px solid #1e293b; margin-top: 3rem;
+    }
+    a { color: #60a5fa; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Oracle OpenTelemetry Showcase</h1>
+  <p>
+    Observability Report &mdash;
+    <span class="badge badge-blue">{{ service_name }}</span>
+    &mdash; Generated {{ generated_at }} &mdash; Last {{ lookback_minutes }} minutes
+  </p>
+</header>
+
+<div class="container">
+
+  <!-- Summary stats -->
+  <section>
+    <h2>Summary</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="label">Total Operations</div>
+        <div class="value">{{ "{:,.0f}".format(metrics.total_operations) }}</div>
+        <div class="unit">last {{ lookback_minutes }}m</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total Errors</div>
+        <div class="value" style="color:{% if metrics.total_errors > 0 %}#f87171{% else %}#4ade80{% endif %}">
+          {{ "{:,.0f}".format(metrics.total_errors) }}
+        </div>
+        <div class="unit">last {{ lookback_minutes }}m</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Error Rate</div>
+        <div class="value">{{ "%.2f"|format(metrics.error_rate_pct) }}%</div>
+        <div class="unit">of all operations</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Query p50</div>
+        <div class="value">{{ "%.1f"|format(metrics.query_p50_ms) }}</div>
+        <div class="unit">ms</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Query p95</div>
+        <div class="value">{{ "%.1f"|format(metrics.query_p95_ms) }}</div>
+        <div class="unit">ms</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Query p99</div>
+        <div class="value">{{ "%.1f"|format(metrics.query_p99_ms) }}</div>
+        <div class="unit">ms</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Peak Pool Busy</div>
+        <div class="value">{{ "%.0f"|format(metrics.pool_max_busy) }}</div>
+        <div class="unit">connections</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Avg Vector Similarity</div>
+        <div class="value">{{ "%.3f"|format(metrics.avg_vector_similarity) }}</div>
+        <div class="unit">cosine (median)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Query latency chart -->
+  <section>
+    <h2>Query Latency p95 (per operation, over time)</h2>
+    <div class="chart-container">
+      <canvas id="latencyChart"></canvas>
+    </div>
+  </section>
+
+  <!-- Operations breakdown -->
+  <section>
+    <h2>Operations Breakdown</h2>
+    {% set max_ops = ops_by_type.values() | max if ops_by_type else 1 %}
+    <div class="ops-bar-wrap">
+      {% for op, count in ops_by_type.items() | sort(attribute='1', reverse=True) %}
+      <div class="ops-bar-item">
+        <div class="op-name">{{ op }}</div>
+        <div class="op-bar" style="width: {{ (count / max_ops * 100) | round }}%"></div>
+        <div class="op-count">{{ "{:,}".format(count) }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Slow traces -->
+  <section>
+    <h2>Slowest Traces (&gt;50 ms)</h2>
+    {% if slow_traces %}
+    <table>
+      <thead>
+        <tr>
+          <th>Trace ID</th>
+          <th>Root Span</th>
+          <th>Duration</th>
+          <th>Spans</th>
+          <th>Start Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for trace in slow_traces %}
+        <tr>
+          <td><code style="font-size:0.75rem">{{ trace.traceID[:16] }}…</code></td>
+          <td>{{ trace.rootSpanName | default("—") }}</td>
+          <td>{{ format_duration_ms(trace.durationMs) }}</td>
+          <td>{{ trace.spanCount | default("—") }}</td>
+          <td style="font-size:0.8rem;color:#64748b">
+            {{ trace.startTimeUnixNano | default("") }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#64748b;font-size:0.9rem">No slow traces found in the selected window.</p>
+    {% endif %}
+  </section>
+
+</div><!-- /container -->
+
+<footer>
+  Generated by <strong>oracle-otel-showcase</strong> &mdash;
+  <a href="https://github.com/your-username/oracle-otel-showcase">View on GitHub</a>
+</footer>
+
+<script>
+const _COLORS = [
+  "#3b82f6","#8b5cf6","#10b981","#f59e0b","#ef4444","#06b6d4","#ec4899"
+];
+const datasets = {{ chart_datasets | tojson }};
+const ctx = document.getElementById("latencyChart").getContext("2d");
+new Chart(ctx, {
+  type: "line",
+  data: {
+    datasets: datasets.map((ds, i) => ({
+      label: ds.label,
+      data: ds.data,
+      borderColor: _COLORS[i % _COLORS.length],
+      backgroundColor: _COLORS[i % _COLORS.length] + "22",
+      borderWidth: 2,
+      tension: 0.3,
+      fill: false,
+      pointRadius: 0,
+    }))
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    parsing: false,
+    scales: {
+      x: {
+        type: "time",
+        time: { unit: "minute" },
+        ticks: { color: "#94a3b8" },
+        grid: { color: "#1e293b" },
+      },
+      y: {
+        title: { display: true, text: "ms", color: "#94a3b8" },
+        ticks: { color: "#94a3b8" },
+        grid: { color: "#334155" },
+        beginAtZero: true,
+      }
+    },
+    plugins: {
+      legend: { labels: { color: "#e2e8f0" } },
+      tooltip: { mode: "index", intersect: false },
+    }
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+# Oracle driver (thin mode — no Oracle Instant Client needed)
+python-oracledb>=2.4.0,<3.0
+
+# OpenTelemetry core
+opentelemetry-api>=1.27.0,<2.0
+opentelemetry-sdk>=1.27.0,<2.0
+
+# OTLP exporters (gRPC)
+opentelemetry-exporter-otlp-proto-grpc>=1.27.0,<2.0
+
+# DB-API automatic span instrumentation
+opentelemetry-instrumentation-dbapi>=0.48b0
+
+# Semantic conventions
+opentelemetry-semantic-conventions>=0.48b0
+
+# Configuration
+pydantic-settings>=2.3.0,<3.0
+python-dotenv>=1.0.0,<2.0
+
+# Report generation
+requests>=2.32.0,<3.0
+jinja2>=3.1.0,<4.0
+
+# Vector math (synthetic embeddings for demo)
+numpy>=1.26.0,<3.0
