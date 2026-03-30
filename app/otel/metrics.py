@@ -26,6 +26,7 @@ def create_pool_gauges(size_cb, busy_cb, wait_cb):
         unit="sessions",
     )
 
+
 # Query latency histogram — labeled by `operation`
 query_duration_histogram = _meter.create_histogram(
     name="oracle.query.duration",

@@ -63,7 +63,9 @@ def _insert_product(conn, span) -> int | None:
         span.set_attribute("product.name", name)
         return product_id
     except Exception as exc:
-        otel_metrics.db_error_counter.add(1, {"error_type": type(exc).__name__, "operation": "insert"})
+        otel_metrics.db_error_counter.add(
+            1, {"error_type": type(exc).__name__, "operation": "insert"}
+        )
         logger.exception("INSERT failed")
         return None
 
@@ -81,7 +83,9 @@ def _select_product(conn, product_id: int) -> None:
         otel_metrics.query_duration_histogram.record(duration_ms, {"operation": "select"})
         otel_metrics.db_operation_counter.add(1, {"operation": "select"})
     except Exception as exc:
-        otel_metrics.db_error_counter.add(1, {"error_type": type(exc).__name__, "operation": "select"})
+        otel_metrics.db_error_counter.add(
+            1, {"error_type": type(exc).__name__, "operation": "select"}
+        )
         logger.exception("SELECT failed for id=%d", product_id)
 
 
@@ -100,7 +104,9 @@ def _update_product(conn, product_id: int) -> None:
         otel_metrics.query_duration_histogram.record(duration_ms, {"operation": "update"})
         otel_metrics.db_operation_counter.add(1, {"operation": "update"})
     except Exception as exc:
-        otel_metrics.db_error_counter.add(1, {"error_type": type(exc).__name__, "operation": "update"})
+        otel_metrics.db_error_counter.add(
+            1, {"error_type": type(exc).__name__, "operation": "update"}
+        )
         logger.exception("UPDATE failed for id=%d", product_id)
 
 
@@ -114,5 +120,7 @@ def _delete_product(conn, product_id: int) -> None:
         otel_metrics.query_duration_histogram.record(duration_ms, {"operation": "delete"})
         otel_metrics.db_operation_counter.add(1, {"operation": "delete"})
     except Exception as exc:
-        otel_metrics.db_error_counter.add(1, {"error_type": type(exc).__name__, "operation": "delete"})
+        otel_metrics.db_error_counter.add(
+            1, {"error_type": type(exc).__name__, "operation": "delete"}
+        )
         logger.exception("DELETE failed for id=%d", product_id)

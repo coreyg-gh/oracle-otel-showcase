@@ -1,8 +1,6 @@
 """Unit tests for CRUD workload (no live Oracle)."""
 
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 
 def test_random_product_name_format():
@@ -34,7 +32,6 @@ def test_run_crud_cycle_calls_all_operations(mock_connection):
 
 
 def test_crud_handles_db_error_gracefully(mock_connection):
-    import oracledb
     conn, cursor = mock_connection
     cursor.execute.side_effect = Exception("Simulated DB error")
 

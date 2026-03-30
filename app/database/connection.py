@@ -25,7 +25,12 @@ def create_pool(settings: Settings) -> oracledb.ConnectionPool:
         max=settings.oracle_pool_max,
         increment=settings.oracle_pool_increment,
     )
-    logger.info("Connection pool created: %s (min=%d max=%d)", dsn, settings.oracle_pool_min, settings.oracle_pool_max)
+    logger.info(
+        "Connection pool created: %s (min=%d max=%d)",
+        dsn,
+        settings.oracle_pool_min,
+        settings.oracle_pool_max,
+    )
     return pool
 
 

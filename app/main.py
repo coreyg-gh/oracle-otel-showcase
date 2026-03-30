@@ -38,7 +38,12 @@ async def main() -> None:
     tracer_provider, meter_provider = setup_telemetry(settings)
 
     # --- Oracle pool (with retry for slow container startup) ---
-    logger.info("Connecting to Oracle %s:%d/%s...", settings.oracle_host, settings.oracle_port, settings.oracle_service)
+    logger.info(
+        "Connecting to Oracle %s:%d/%s...",
+        settings.oracle_host,
+        settings.oracle_port,
+        settings.oracle_service,
+    )
     pool = await asyncio.get_event_loop().run_in_executor(None, _create_pool_with_retry)
     register_pool_callbacks(pool)
 

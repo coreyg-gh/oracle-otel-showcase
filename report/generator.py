@@ -8,9 +8,8 @@ Or via Docker Compose:
 """
 
 import logging
-import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import jinja2
@@ -29,29 +28,29 @@ logger = logging.getLogger(__name__)
 _NS = "oracle_otel"
 
 PROMQL = {
-    "total_operations": f'sum(increase({_NS}_oracle_db_operations_total[{{lookback}}m]))',
-    "total_errors": f'sum(increase({_NS}_oracle_db_errors_total[{{lookback}}m]))',
+    "total_operations": f"sum(increase({_NS}_oracle_db_operations_total[{{lookback}}m]))",
+    "total_errors": f"sum(increase({_NS}_oracle_db_errors_total[{{lookback}}m]))",
     "error_rate_pct": (
-        f'sum(rate({_NS}_oracle_db_errors_total[{{lookback}}m])) '
-        f'/ sum(rate({_NS}_oracle_db_operations_total[{{lookback}}m])) * 100'
+        f"sum(rate({_NS}_oracle_db_errors_total[{{lookback}}m])) "
+        f"/ sum(rate({_NS}_oracle_db_operations_total[{{lookback}}m])) * 100"
     ),
     "query_p50_all": (
-        f'histogram_quantile(0.50, sum(rate({_NS}_oracle_query_duration_ms_bucket[{{lookback}}m])) by (le))'
+        f"histogram_quantile(0.50, sum(rate({_NS}_oracle_query_duration_milliseconds_bucket[{{lookback}}m])) by (le))"
     ),
     "query_p95_all": (
-        f'histogram_quantile(0.95, sum(rate({_NS}_oracle_query_duration_ms_bucket[{{lookback}}m])) by (le))'
+        f"histogram_quantile(0.95, sum(rate({_NS}_oracle_query_duration_milliseconds_bucket[{{lookback}}m])) by (le))"
     ),
     "query_p99_all": (
-        f'histogram_quantile(0.99, sum(rate({_NS}_oracle_query_duration_ms_bucket[{{lookback}}m])) by (le))'
+        f"histogram_quantile(0.99, sum(rate({_NS}_oracle_query_duration_milliseconds_bucket[{{lookback}}m])) by (le))"
     ),
-    "operations_by_type": f'sum by (operation) (increase({_NS}_oracle_db_operations_total[{{lookback}}m]))',
-    "pool_max_busy": f'max_over_time({_NS}_oracle_pool_busy_connections[{{lookback}}m])',
+    "operations_by_type": f"sum by (operation) (increase({_NS}_oracle_db_operations_total[{{lookback}}m]))",
+    "pool_max_busy": f"max_over_time({_NS}_oracle_pool_busy_connections[{{lookback}}m])",
     "avg_vector_similarity": (
-        f'histogram_quantile(0.50, sum(rate({_NS}_oracle_vector_similarity_score_1_bucket[{{lookback}}m])) by (le))'
+        f"histogram_quantile(0.50, sum(rate({_NS}_oracle_vector_similarity_score_bucket[{{lookback}}m])) by (le))"
     ),
     # Range query for chart (p95 over time)
     "query_p95_range": (
-        f'histogram_quantile(0.95, sum(rate({_NS}_oracle_query_duration_ms_bucket[1m])) by (le, operation))'
+        f"histogram_quantile(0.95, sum(rate({_NS}_oracle_query_duration_milliseconds_bucket[1m])) by (le, operation))"
     ),
 }
 
@@ -103,10 +102,12 @@ def generate_report(output_dir: str | None = None, lookback_minutes: int | None 
     output_dir = output_dir or settings.report_output_dir
     lookback = lookback_minutes or settings.report_lookback_minutes
 
-    end = datetime.now(timezone.utc)
+    end = datetime.now(UTC)
     start = end - timedelta(minutes=lookback)
 
-    logger.info("Generating report: last %d minutes (%s → %s)", lookback, start.isoformat(), end.isoformat())
+    logger.info(
+        "Generating report: last %d minutes (%s → %s)", lookback, start.isoformat(), end.isoformat()
+    )
 
     prom = PrometheusClient(settings.prometheus_url)
     tempo = TempoClient(settings.tempo_url)
@@ -157,7 +158,9 @@ def generate_report(output_dir: str | None = None, lookback_minutes: int | None 
     logger.info("HTML report written → %s", html_file)
 
     # Markdown report (autoescape off for MD)
-    md_env = jinja2.Environment(loader=jinja2.FileSystemLoader(str(templates_dir)), autoescape=False)
+    md_env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(str(templates_dir)), autoescape=False
+    )
     md_template = md_env.get_template("report.md.j2")
     md_content = md_template.render(**template_context)
     md_file = out_path / f"report_{timestamp}.md"

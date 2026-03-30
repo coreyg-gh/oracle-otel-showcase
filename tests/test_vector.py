@@ -3,7 +3,6 @@
 import array
 
 import numpy as np
-import pytest
 
 
 def test_generate_embedding_is_unit_normalised():

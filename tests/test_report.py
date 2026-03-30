@@ -1,15 +1,12 @@
 """Unit tests for the report generator (Prometheus + Tempo HTTP mocked)."""
 
-import json
-from datetime import datetime, timezone
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from datetime import UTC, datetime
+from unittest.mock import patch
 
-import pytest
 import responses as responses_lib
 
-
 # ── PrometheusClient ────────────────────────────────────────────────────────
+
 
 @responses_lib.activate
 def test_prometheus_client_query_instant_success():
@@ -22,9 +19,7 @@ def test_prometheus_client_query_instant_success():
             "status": "success",
             "data": {
                 "resultType": "vector",
-                "result": [
-                    {"metric": {"operation": "insert"}, "value": [1700000000, "42.5"]}
-                ],
+                "result": [{"metric": {"operation": "insert"}, "value": [1700000000, "42.5"]}],
             },
         },
     )
@@ -45,7 +40,10 @@ def test_prometheus_client_scalar_value_returns_float():
         "http://prometheus:9090/api/v1/query",
         json={
             "status": "success",
-            "data": {"resultType": "vector", "result": [{"metric": {}, "value": [1700000000, "99.9"]}]},
+            "data": {
+                "resultType": "vector",
+                "result": [{"metric": {}, "value": [1700000000, "99.9"]}],
+            },
         },
     )
 
@@ -74,6 +72,7 @@ def test_prometheus_client_scalar_value_default_on_empty():
 
 # ── TempoClient ─────────────────────────────────────────────────────────────
 
+
 @responses_lib.activate
 def test_tempo_client_search_returns_traces():
     from report.tempo_client import TempoClient
@@ -96,8 +95,8 @@ def test_tempo_client_search_returns_traces():
     client = TempoClient("http://tempo:3200")
     traces = client.search(
         "oracle-otel-showcase",
-        start=datetime(2024, 1, 1, tzinfo=timezone.utc),
-        end=datetime(2024, 1, 2, tzinfo=timezone.utc),
+        start=datetime(2024, 1, 1, tzinfo=UTC),
+        end=datetime(2024, 1, 2, tzinfo=UTC),
     )
 
     assert len(traces) == 1
@@ -117,14 +116,15 @@ def test_tempo_client_search_returns_empty_on_error():
     client = TempoClient("http://tempo:3200")
     traces = client.search(
         "oracle-otel-showcase",
-        start=datetime(2024, 1, 1, tzinfo=timezone.utc),
-        end=datetime(2024, 1, 2, tzinfo=timezone.utc),
+        start=datetime(2024, 1, 1, tzinfo=UTC),
+        end=datetime(2024, 1, 2, tzinfo=UTC),
     )
 
     assert traces == []
 
 
 # ── Report generator ────────────────────────────────────────────────────────
+
 
 @responses_lib.activate
 def test_generate_report_creates_html_and_md(tmp_path):

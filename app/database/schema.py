@@ -5,7 +5,6 @@ the demo user to create tables and seed data.
 """
 
 import logging
-import time
 
 import oracledb
 
@@ -109,18 +108,17 @@ def initialise_schema(settings: Settings, seed_vectors_fn=None) -> None:
     logger.info("Tables ensured")
 
     # Step 3: seed product rows if empty
-    with _connect_as_demo(settings) as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM products")
-            (count,) = cur.fetchone()
-            if count == 0:
-                logger.info("Seeding %d products...", len(_SEED_PRODUCTS))
-                cur.executemany(
-                    "INSERT INTO products (name, category, price, stock_qty) VALUES (:1, :2, :3, :4)",
-                    _SEED_PRODUCTS,
-                )
-                conn.commit()
-                logger.info("Product seed complete")
+    with _connect_as_demo(settings) as conn, conn.cursor() as cur:
+        cur.execute("SELECT COUNT(*) FROM products")
+        (count,) = cur.fetchone()
+        if count == 0:
+            logger.info("Seeding %d products...", len(_SEED_PRODUCTS))
+            cur.executemany(
+                "INSERT INTO products (name, category, price, stock_qty) VALUES (:1, :2, :3, :4)",
+                _SEED_PRODUCTS,
+            )
+            conn.commit()
+            logger.info("Product seed complete")
 
     # Step 4: seed embeddings (requires vector data first for HNSW index)
     if seed_vectors_fn is not None:

@@ -55,7 +55,10 @@ def numpy_to_oracle_vector(embedding: np.ndarray) -> array.array:
 def seed_embeddings(conn, settings) -> None:
     """Insert `vector_count_seed` synthetic embeddings tied to random products."""
     with conn.cursor() as cur:
-        cur.execute("SELECT id FROM products ORDER BY DBMS_RANDOM.VALUE FETCH FIRST :n ROWS ONLY", n=settings.vector_count_seed)
+        cur.execute(
+            "SELECT id FROM products ORDER BY DBMS_RANDOM.VALUE FETCH FIRST :n ROWS ONLY",
+            n=settings.vector_count_seed,
+        )
         product_ids = [row[0] for row in cur.fetchall()]
 
     if not product_ids:
@@ -100,7 +103,9 @@ def run_vector_search_cycle(conn, dimensions: int = 1536, top_k: int = 5) -> Non
                 results = cur.fetchall()
 
             duration_ms = (time.perf_counter() - t0) * 1000
-            otel_metrics.query_duration_histogram.record(duration_ms, {"operation": "vector_search"})
+            otel_metrics.query_duration_histogram.record(
+                duration_ms, {"operation": "vector_search"}
+            )
             otel_metrics.db_operation_counter.add(1, {"operation": "vector_search"})
 
             span.set_attribute("vector.result_count", len(results))
@@ -130,7 +135,9 @@ def run_vector_insert_cycle(conn, dimensions: int = 1536) -> None:
         t0 = time.perf_counter()
         try:
             with conn.cursor() as cur:
-                cur.execute("SELECT id FROM products ORDER BY DBMS_RANDOM.VALUE FETCH FIRST 1 ROWS ONLY")
+                cur.execute(
+                    "SELECT id FROM products ORDER BY DBMS_RANDOM.VALUE FETCH FIRST 1 ROWS ONLY"
+                )
                 row = cur.fetchone()
             if not row:
                 return
@@ -144,7 +151,9 @@ def run_vector_insert_cycle(conn, dimensions: int = 1536) -> None:
                 )
             conn.commit()
             duration_ms = (time.perf_counter() - t0) * 1000
-            otel_metrics.query_duration_histogram.record(duration_ms, {"operation": "vector_insert"})
+            otel_metrics.query_duration_histogram.record(
+                duration_ms, {"operation": "vector_insert"}
+            )
             otel_metrics.db_operation_counter.add(1, {"operation": "vector_insert"})
             span.set_attribute("vector.dimensions", dimensions)
         except Exception as exc:

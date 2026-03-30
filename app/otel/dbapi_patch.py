@@ -48,5 +48,7 @@ def instrument_connection(
         )
         return wrapped
     except Exception:
-        logger.warning("Failed to instrument connection — using uninstrumented connection", exc_info=True)
+        logger.warning(
+            "Failed to instrument connection — using uninstrumented connection", exc_info=True
+        )
         return raw_connection

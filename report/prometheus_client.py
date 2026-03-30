@@ -19,7 +19,9 @@ class PrometheusClient:
         params: dict = {"query": promql}
         if at:
             params["time"] = at.timestamp()
-        resp = self.session.get(f"{self.base_url}/api/v1/query", params=params, timeout=self.timeout)
+        resp = self.session.get(
+            f"{self.base_url}/api/v1/query", params=params, timeout=self.timeout
+        )
         resp.raise_for_status()
         data = resp.json()
         if data.get("status") != "success":
@@ -41,7 +43,9 @@ class PrometheusClient:
             "end": end.timestamp(),
             "step": step,
         }
-        resp = self.session.get(f"{self.base_url}/api/v1/query_range", params=params, timeout=self.timeout)
+        resp = self.session.get(
+            f"{self.base_url}/api/v1/query_range", params=params, timeout=self.timeout
+        )
         resp.raise_for_status()
         data = resp.json()
         if data.get("status") != "success":

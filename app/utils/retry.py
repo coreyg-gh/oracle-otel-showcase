@@ -17,8 +17,8 @@ _TRANSIENT_ORA_CODES = {
     12541,  # TNS: no listener
     12528,  # TNS: listener: all appropriate instances are blocking new connections
     12537,  # TNS: connection closed
-    1033,   # Oracle initialization or shutdown in progress
-    1034,   # Oracle not available
+    1033,  # Oracle initialization or shutdown in progress
+    1034,  # Oracle not available
 }
 
 

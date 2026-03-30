@@ -29,7 +29,9 @@ class TempoClient:
             "limit": limit,
         }
         try:
-            resp = self.session.get(f"{self.base_url}/api/search", params=params, timeout=self.timeout)
+            resp = self.session.get(
+                f"{self.base_url}/api/search", params=params, timeout=self.timeout
+            )
             resp.raise_for_status()
             return resp.json().get("traces", [])
         except requests.RequestException as exc:
@@ -51,7 +53,9 @@ class TempoClient:
             "limit": limit,
         }
         try:
-            resp = self.session.get(f"{self.base_url}/api/search", params=params, timeout=self.timeout)
+            resp = self.session.get(
+                f"{self.base_url}/api/search", params=params, timeout=self.timeout
+            )
             resp.raise_for_status()
             return resp.json().get("traces", [])
         except requests.RequestException as exc:
