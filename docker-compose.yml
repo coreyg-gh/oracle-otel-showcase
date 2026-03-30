@@ -89,7 +89,7 @@ services:
     environment:
       ORACLE_HOST: oracle-db
       ORACLE_PORT: "1521"
-      ORACLE_SERVICE: FREE
+      ORACLE_SERVICE: FREEPDB1
       ORACLE_USER: "${ORACLE_USER:-demo}"
       ORACLE_PASSWORD: "${ORACLE_PASSWORD:-DemoPass1}"
       ORACLE_SYSTEM_PASSWORD: "${ORACLE_SYSTEM_PASSWORD:-OraclePass1}"

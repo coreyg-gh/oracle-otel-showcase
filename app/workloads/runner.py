@@ -34,7 +34,7 @@ async def crud_loop(
             try:
                 await loop.run_in_executor(None, crud.run_crud_cycle, conn)
             finally:
-                await loop.run_in_executor(None, pool.release, conn._dbapi_connection)
+                await loop.run_in_executor(None, pool.release, getattr(conn, "__wrapped__", conn))
         except Exception:
             logger.exception("CRUD loop error")
         await asyncio.sleep(settings.workload_interval_seconds)
@@ -65,7 +65,7 @@ async def vector_search_loop(
                         settings.vector_dimensions,
                     )
             finally:
-                await loop.run_in_executor(None, pool.release, conn._dbapi_connection)
+                await loop.run_in_executor(None, pool.release, getattr(conn, "__wrapped__", conn))
         except Exception:
             logger.exception("Vector search loop error")
         await asyncio.sleep(settings.workload_interval_seconds * 1.5)

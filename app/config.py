@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     # Oracle connection
     oracle_host: str = "oracle-db"
     oracle_port: int = 1521
-    oracle_service: str = "FREE"
+    oracle_service: str = "FREEPDB1"
     oracle_user: str = "demo"
     oracle_password: str = "DemoPass1"
     oracle_system_password: str = "OraclePass1"

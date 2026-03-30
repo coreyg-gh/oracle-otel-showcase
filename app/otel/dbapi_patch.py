@@ -31,18 +31,18 @@ def instrument_connection(
     The original connection object must still be used for pool.release().
     """
     integration = DatabaseApiIntegration(
-        tracer_provider=tracer_provider,
-        database_component="oracle",
-        database_dialect="oracle",
+        name="oracle-otel-showcase",
+        database_system="oracle",
         connection_attributes=_CONNECTION_ATTRIBUTES,
-        capture_parameters=False,  # avoid leaking bind values in spans by default
+        tracer_provider=tracer_provider,
+        capture_parameters=False,
     )
 
     # DatabaseApiIntegration.wrapped_connection expects a callable that returns
     # the already-open connection, so we pass a lambda.
     try:
         wrapped = integration.wrapped_connection(
-            connect_func=lambda *a, **k: raw_connection,
+            connect_method=lambda *a, **k: raw_connection,
             args=(),
             kwargs={},
         )
